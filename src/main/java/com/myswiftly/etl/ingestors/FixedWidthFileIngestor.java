@@ -37,16 +37,20 @@ public class FixedWidthFileIngestor implements Ingestor {
 
 		LOGGER.info("Ingesting file [" + ingestionInfo.getCatalogFileUri() + "]");
 
-		try (BufferedReader bufferedReader = new BufferedReader(new FileReader(ingestionInfo.getCatalogFileUri()))) {
+		try (BufferedReader reader = new BufferedReader(new FileReader(ingestionInfo.getCatalogFileUri()))) {
 
 			int totalLinesReadAlready = ingestionInfo.getLinesIngested();
 
-			char[] buf = new char[FixedWidthProductParser.LINE_WIDTH];
 			int r, totalLinesRead = 0;
+
+			// Ideally we would want to read character by character (buffered), so we avoid
+			// the conversion from chars->String->char[]. For that, need to find a reliable
+			// way to read line endings on different platforms. In the interest of time,
+			// using readLine() for now
+			// char[] buf = new char[FixedWidthProductParser.LINE_WIDTH];
+			// while ((r = reader.read(buf, 0, FixedWidthProductParser.LINE_WIDTH)) != -1) {
 			String line;
-			// while ((r = bufferedReader.read(buf, 0, FixedWidthProductParser.LINE_WIDTH))
-			// != -1) {
-			while ((line = bufferedReader.readLine()) != null) {
+			while ((line = reader.readLine()) != null) {
 
 				totalLinesRead++;
 
@@ -72,8 +76,8 @@ public class FixedWidthFileIngestor implements Ingestor {
 				}
 
 				// skip the carriage return and new line chars
-				// bufferedReader.read();
-				// bufferedReader.read();
+				// reader.read();
+				// reader.read();
 			}
 
 			ingestionInfo.setLinesIngested(totalLinesRead);
