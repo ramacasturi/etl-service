@@ -3,6 +3,7 @@ package com.myswiftly.etl.ingestors;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -36,16 +37,16 @@ public class FixedWidthFileIngestor implements Ingestor {
 
 		LOGGER.info("Ingesting file [" + ingestionInfo.getCatalogFileUri() + "]");
 
-		File file = new File(ingestionInfo.getCatalogFileUri());
-		try (InputStream in = new FileInputStream(file);
-				Reader reader = new InputStreamReader(in, StandardCharsets.US_ASCII);
-				Reader buffer = new BufferedReader(reader)) {
+		try (BufferedReader bufferedReader = new BufferedReader(new FileReader(ingestionInfo.getCatalogFileUri()))) {
 
 			int totalLinesReadAlready = ingestionInfo.getLinesIngested();
 
 			char[] buf = new char[FixedWidthProductParser.LINE_WIDTH];
 			int r, totalLinesRead = 0;
-			while ((r = reader.read(buf, 0, FixedWidthProductParser.LINE_WIDTH)) != -1) {
+			String line;
+			// while ((r = bufferedReader.read(buf, 0, FixedWidthProductParser.LINE_WIDTH))
+			// != -1) {
+			while ((line = bufferedReader.readLine()) != null) {
 
 				totalLinesRead++;
 
@@ -55,7 +56,8 @@ public class FixedWidthFileIngestor implements Ingestor {
 					continue;
 				}
 
-				Product product = FixedWidthProductParser.parse(buf);
+				// Product product = FixedWidthProductParser.parse(buf);
+				Product product = FixedWidthProductParser.parse(line.toCharArray());
 				product.setStoreId(ingestionInfo.getStoreId());
 
 				_productDAO.saveOrUpdate(product);
@@ -70,8 +72,8 @@ public class FixedWidthFileIngestor implements Ingestor {
 				}
 
 				// skip the carriage return and new line chars
-				reader.read();
-				reader.read();
+				// bufferedReader.read();
+				// bufferedReader.read();
 			}
 
 			ingestionInfo.setLinesIngested(totalLinesRead);
